@@ -13,21 +13,21 @@ import {Store} from '../common/store.service';
     templateUrl: './course-dialog.component.html',
     styleUrls: ['./course-dialog.component.css']
 })
-export class CourseDialogComponent implements AfterViewInit {
+export class CourseDialogComponent implements OnInit, AfterViewInit {
 
     form: FormGroup;
 
-    course:Course;
+    course: Course;
 
     @ViewChild('saveButton', { static: true }) saveButton: ElementRef;
 
-    @ViewChild('searchInput', { static: true }) searchInput : ElementRef;
+    @ViewChild('searchInput', { static: true }) searchInput: ElementRef;
 
     constructor(
+        @Inject(MAT_DIALOG_DATA) course: Course,
         private fb: FormBuilder,
         private dialogRef: MatDialogRef<CourseDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) course:Course,
-        private store:Store) {
+        private store: Store) {
 
         this.course = course;
 
@@ -35,7 +35,7 @@ export class CourseDialogComponent implements AfterViewInit {
             description: [course.description, Validators.required],
             category: [course.category, Validators.required],
             releasedAt: [moment(), Validators.required],
-            longDescription: [course.longDescription,Validators.required]
+            longDescription: [course.longDescription, Validators.required]
         });
 
     }
@@ -44,20 +44,39 @@ export class CourseDialogComponent implements AfterViewInit {
 
     }
 
-    save() {
-        this.store.saveCourse(this.course.id, this.form.value)
-            .subscribe(
-                () => this.close(),
-                err => console.log("Error saving course", err)
-            );
+    ngOnInit() {
+        this.form.valueChanges
+        .pipe(
+            filter(() => this.form.valid),
+            concatMap(changes => this.saveCourse(changes))
+        )
+        .subscribe();
     }
 
-
-
-
-    close() {
-        this.dialogRef.close();
+    saveCourse(changes) {
+        return fromPromise(fetch(`/api/courses/${this.course.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(changes),
+            headers: {
+                'content-type': 'application/json'
+            }
+        }));
     }
+
+    // save() {
+    //     this.store.saveCourse(this.course.id, this.form.value)
+    //         .subscribe(
+    //             () => this.close(),
+    //             err => console.log("Error saving course", err)
+    //         );
+    // }
+
+
+
+
+    // close() {
+    //     this.dialogRef.close();
+    // }
 
 
 }
