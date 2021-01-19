@@ -12,8 +12,7 @@ export function createHttpObservable(url:string) {
 
                 if (response.ok) {
                     return response.json();
-                }
-                else {
+                } else {
                     observer.error('Request failed with status code: ' + response.status);
                 }
             })

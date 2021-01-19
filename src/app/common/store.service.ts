@@ -1,25 +1,20 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, Subject, timer} from 'rxjs';
-import {Course} from '../model/course';
-import {delayWhen, filter, map, retryWhen, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
-import {createHttpObservable} from './util';
-import {fromPromise} from 'rxjs/internal-compatibility';
-
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, Subject, timer } from 'rxjs';
+import { fromPromise } from 'rxjs/internal-compatibility';
+import { tap, map, shareReplay, retryWhen, delayWhen, filter } from 'rxjs/operators';
+import { Course } from '../model/course';
+import { createHttpObservable } from './util';
 
 @Injectable({
     providedIn: 'root'
 })
-
-
 export class Store {
 
     private subject = new BehaviorSubject<Course[]>([]);
 
     courses$: Observable<Course[]> = this.subject.asObservable();
 
-
     init() {
-
         const http$ = createHttpObservable('/api/courses');
 
         http$
@@ -28,40 +23,36 @@ export class Store {
                 map(res => Object.values(res['payload']))
             )
             .subscribe(
-                // courses => this.subject.next(courses)
+                courses => this.subject.next(courses)
             );
     }
 
-    selectBeginnerCourses() {
+    selectBegginerCourses(): any {
         return this.filterByCategory('BEGINNER');
     }
 
-    selectAdvancedCourses() {
+    selectAdvancedCourses(): any {
         return this.filterByCategory('ADVANCED');
     }
 
-    selectCourseById(courseId:number) {
+    selectCourseById(courseId: number): Observable<any> {
         return this.courses$
             .pipe(
-                map(courses => courses.find(course => course.id == courseId)),
+                map(courses => courses.find(course => course.id === courseId)),
                 filter(course => !!course)
-
             );
     }
 
-    filterByCategory(category: string) {
+    filterByCategory(category: string): Observable<any> {
         return this.courses$
             .pipe(
                 map(courses => courses
-                    .filter(course => course.category == category))
+                    .filter(course => course.category === category))
             );
     }
-
-    saveCourse(courseId:number, changes): Observable<any> {
-
+    saveCourse(courseId: number, changes: object): Observable<any> {
         const courses = this.subject.getValue();
-
-        const courseIndex = courses.findIndex(course => course.id == courseId);
+        const courseIndex = courses.findIndex(course => course.id === courseId);
 
         const newCourses = courses.slice(0);
 
@@ -79,39 +70,6 @@ export class Store {
                 'content-type': 'application/json'
             }
         }));
-
     }
 
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
